@@ -2,12 +2,30 @@ mqtt:
   client:
     protocol: 4      # MQTTv311
   connection:
-    host: localhost
-    port: 1883
+    host: arena-dev1.conix.io
+    port: 8883
     keepalive: 60
-  private_path: device/001
-#serializer: json:dumps
-#deserializer: json:loads
+  # private_path: device/001
+  account: 
+    username: cli
+    password: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjbGkiLCJzdWJzIjpbIiMiXSwicHVibCI6WyIjIl0sImlhdCI6MTYzMTAyOTIzNCwiZXhwIjoxNjYyNTY1MjM0fQ.snbvE8ndcWNgJ7wrYxzdaw2YJnKql3AaBBcRrNQQl4HNvROsL2AnTS3NWc8a39KLQGmAF4GqJD4GoDZBXogjJbUGuKQW1v_gyXiafJXAGXPWSvnXNNAEbKMtX0qBOIhIge0bG17jIFj2CcGPOj-9-0PAtbpW7J8t8ylydq6GqheQkDg91lDqNdJV5daayHiLDmhJJVYqurrH6ilImPW3lFHT6CjfYaHsK9eaksLPAgBxMGyJFyRWTXkfRwMzxyVllZJ1nfA8WuJhAUkVnCKuO70L6V3XPCCVay-QflKW4eH6JhHsiv4eful10B3W7BPV5-7Rp9ZF5XbHetex_AGfqkg9ehsRxWmw_44oETx57-vt_CK2FRimw15ODkhlk7MBy-JssYAv2Zra4c7hv_etgcFPqeQhVVnMki1zyYQAt7WmfYyKB58xuqUfvpXkIXiQumlXTfYtnoK1ZkBjTTX2_kj0RpAsJ9zWal7IpP8CE7s5X5ByrXWc-PhzQZ_DHFJf1sw4G3B3cHP0XzmjbYbrI4QyxKSmrWPCx6b6NbqmR8g31wW1bzJL2iN_72Mg-KahsDMcGcqJNZug1C3NoPnLZMODvkFV_rzboC0fPMxLS0OBfNTII-MHjN8jDXHN4yePOW-cxDn2xNkgRroCxWASPCGI8hwV4LpROVYGNcFT3PA
+serializer: json:dumps
+deserializer: json:loads
+
+arena:
+  object_type: circle
+  persist: False
+  type: object
+  action: create
+  box_dimension: [1,1,1]     # depth, height, width
+  circle_radius: 1
+  line_width: 1
+  lineWidthStyler: 1
+  position: [0,0,0]
+  rotation: [0,0,0]
+  scale: [1,1,1]
+  color: "#7f7f7f"
+
 bridge:
   # ping pong
   - factory: mqtt_bridge.bridge:RosToMqttBridge
@@ -27,12 +45,40 @@ bridge:
     msg_type: std_msgs.msg:String
     topic_from: echo
     topic_to: /back
+  # perception
+  - factory: mqtt_bridge.bridge:ArenaRosToMqttBridge
+    msg_type: netdriving.msg:perception_msg
+    arena_object_type: box
+    topic_from: /nd_perception
+    topic_to: realm/s/taojin/test
+  # - factory: mqtt_bridge.bridge:MqttToRosBridge
+  #   msg_type: netdriving.msg:perception_msg
+  #   topic_from: nd_perception
+  #   topic_to: /nd_perception_back
+  # # lidar msg
+  # - factory: mqtt_bridge.bridge:RosToMqttBridge
+  #   msg_type: sensor_msgs.msg:PointCloud2
+  #   topic_from: /os_cloud_node/points
+  #   topic_to: mqtt_os_cloud_node/points
+  # - factory: mqtt_bridge.bridge:MqttToRosBridge
+  #   msg_type: sensor_msgs.msg:PointCloud2
+  #   topic_from: mqtt_os_cloud_node/points
+  #   topic_to: /new_os_cloud_node/points
+  # # IMU msg
+  # - factory: mqtt_bridge.bridge:RosToMqttBridge
+  #   msg_type: sensor_msgs.msg:Imu
+  #   topic_from: /imu/data
+  #   topic_to: mqtt_imu/data
+  # - factory: mqtt_bridge.bridge:MqttToRosBridge
+  #   msg_type: sensor_msgs.msg:Imu
+  #   topic_from: mqtt_imu/data
+  #   topic_to: /new_imu/data
   # private path
-  - factory: mqtt_bridge.bridge:RosToMqttBridge
-    msg_type: std_msgs.msg:String
-    topic_from: /private/echo
-    topic_to: ~/echo
-  - factory: mqtt_bridge.bridge:MqttToRosBridge
-    msg_type: std_msgs.msg:String
-    topic_from: ~/echo
-    topic_to: /private/back
+  # - factory: mqtt_bridge.bridge:RosToMqttBridge
+  #   msg_type: std_msgs.msg:String
+  #   topic_from: /private/echo
+  #   topic_to: ~/echo
+  # - factory: mqtt_bridge.bridge:MqttToRosBridge
+  #   msg_type: std_msgs.msg:String
+  #   topic_from: ~/echo
+  #   topic_to: /private/back

@@ -5,11 +5,14 @@ import inject
 import paho.mqtt.client as mqtt
 import rospy
 
+from mqtt_bridge import perception_util
+import json
+
 from .util import lookup_object, extract_values, populate_instance
 
 
 def create_bridge(factory: Union[str, "Bridge"], msg_type: Union[str, Type[rospy.Message]], topic_from: str,
-                  topic_to: str, frequency: Optional[float] = None, **kwargs) -> "Bridge":
+                  topic_to: str, arena_object_type=None, frequency: Optional[float] = None, **kwargs) -> "Bridge":
     """ generate bridge instance using factory callable and arguments. if `factory` or `meg_type` is provided as string,
      this function will convert it to a corresponding object.
     """
@@ -23,8 +26,15 @@ def create_bridge(factory: Union[str, "Bridge"], msg_type: Union[str, Type[rospy
         raise TypeError(
             "msg_type should be rospy.Message instance or its string"
             "reprensentation")
-    return factory(
-        topic_from=topic_from, topic_to=topic_to, msg_type=msg_type, frequency=frequency, **kwargs)
+
+    if arena_object_type == None:
+        return factory(
+            topic_from=topic_from, topic_to=topic_to, msg_type=msg_type, 
+            frequency=frequency, **kwargs)
+    else:
+        return factory(
+            topic_from=topic_from, topic_to=topic_to, msg_type=msg_type, 
+            arena_object_type=arena_object_type, frequency=frequency, **kwargs)
 
 
 class Bridge(object, metaclass=ABCMeta):
@@ -33,6 +43,42 @@ class Bridge(object, metaclass=ABCMeta):
     _serialize = inject.attr('serializer')
     _deserialize = inject.attr('deserializer')
     _extract_private_path = inject.attr('mqtt_private_path_extractor')
+    _arena_params = inject.attr('arena_params')
+    _default_arena_msg = inject.attr('arena_default_msg')
+
+
+class ArenaRosToMqttBridge(Bridge):
+    """ Bridge from ROS topic to MQTT
+
+    bridge ROS messages on `topic_from` to MQTT topic `topic_to`. expect `msg_type` ROS message type.
+    """
+
+    def __init__(self, topic_from: str, topic_to: str, msg_type: rospy.Message, 
+                arena_object_type: Optional[str] = None, frequency: Optional[float] = None):
+        self._topic_from = topic_from
+        self._topic_to = self._extract_private_path(topic_to)
+        self._last_published = rospy.get_time()
+        self._interval = 0 if frequency is None else 1.0 / frequency
+        self._arena_object_type = arena_object_type
+        rospy.Subscriber(topic_from, msg_type, self._callback_ros)
+
+    def _callback_ros(self, msg: rospy.Message):
+        rospy.logdebug("ROS received from {}".format(self._topic_from))
+        now = rospy.get_time()
+        if now - self._last_published >= self._interval:
+            self._publish(msg)
+            self._last_published = now
+
+    def _publish(self, msg: rospy.Message):
+        num_vehicle = perception_util.get_num_vehicle(msg)
+        perception_data = msg.perception
+        for vehicle_id in range(0, num_vehicle):
+            position = perception_util.get_position(perception_data, vehicle_id)
+            
+            payload = perception_util.arena_create_object(self._arena_object_type, self._arena_params, 
+                                                            self._default_arena_msg, vehicle_id, position)
+            # print(json.dumps(payload))
+            self._mqtt_client.publish(topic=self._topic_to + '/' + payload["object_id"], payload=json.dumps(payload))
 
 
 class RosToMqttBridge(Bridge):
@@ -103,4 +149,4 @@ class MqttToRosBridge(Bridge):
         return populate_instance(msg_dict, self._msg_type())
 
 
-__all__ = ['create_bridge', 'Bridge', 'RosToMqttBridge', 'MqttToRosBridge']
+__all__ = ['create_bridge', 'Bridge', 'ArenaRosToMqttBridge', 'RosToMqttBridge', 'MqttToRosBridge']
