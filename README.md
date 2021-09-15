@@ -70,6 +70,48 @@ $ mosquitto_sub -t '#'
 
 ## Usage
 
+### Arena Integration
+example parameter file (demo_params.yaml) for connecting to `https://arena-dev1.conix.io/taojin/test`:
+``` yaml
+mqtt:
+  client:
+    protocol: 4      # MQTTv311
+  connection:
+    host: arena-dev1.conix.io
+    port: 8883       # arena default port
+    keepalive: 60
+  # private_path: device/001
+  account: 
+    username: arena mqtt username
+    password: arena mqtt password
+serializer: json:dumps
+deserializer: json:loads
+
+arena:
+  # supports box, circle, thickline
+  object_type: circle
+  persist: False
+  type: object
+  action: create
+  box_dimension: [1,1,1]      # depth, height, width
+  circle_radius: 1
+  line_width: 1
+  lineWidthStyler: 1
+  # set default values
+  position: [0,0,0]
+  rotation: [0,0,0]
+  scale: [1,1,1]
+  color: "#7f7f7f"
+  
+ bridge:
+   - factory: mqtt_bridge.bridge:ArenaRosToMqttBridge
+      msg_type: netdriving.msg:perception_msg
+      arena_object_type: box    # specify geometry (box, circle, thickline) to be displayed in the arena
+      topic_from: /nd_perception
+      topic_to: realm/s/taojin/test
+```
+
+### Original bridge config (also works)
 parameter file (config.yaml):
 
 ``` yaml
@@ -114,7 +156,7 @@ Parameters under `mqtt` section are used for creating paho's `mqtt.Client` and i
 #### subsections
 
 * `client`: used for `mqtt.Client` constructor
-* `tls`: used for tls configuration
+* `tls`: used for tls configuration (this field must be set when connecting to Arena)
 * `account`: used for username and password configuration
 * `message`: used for MQTT message configuration
 * `userdata`: used for MQTT userdata configuration
@@ -154,6 +196,7 @@ bridge:
 
 * `factory`: bridge class for transfering message from ROS to MQTT, and vise versa.
 * `msg_type`: ROS Message type transfering through the bridge.
+* `arena_object_type`: Geometry type to be displayed in the Arena. Optional if you are not connecting to arena.
 * `topic_from`: topic incoming from (ROS or MQTT)
 * `topic_to`: topic outgoing to (ROS or MQTT)
 
