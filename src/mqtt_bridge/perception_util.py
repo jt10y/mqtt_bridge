@@ -93,34 +93,3 @@ def get_position(perception_data, vehicle_id):
     return {"x": perception_data[vehicle_index + 1],
             "y": perception_data[vehicle_index + 2],
             "z": perception_data[vehicle_index + 3]}
-
-
-
-# def parse_perception_msg(perception_msg):
-#     header = perception_msg.header
-#     perception = perception_msg.perception
-# 
-    # for i in range(0, num_vehicle):
-    #     start_index = 35 * i
-    #     id = perception[start_index]
-        # pos[i] = perception[start_index + 1 : start_index + 4]
-        # bounding_box = perception[start_index + 4 : start_index + 28]
-        # heading_dir = perception[start_index + 28 : start_index + 31]
-        # motion_dir = perception[start_index + 31 : start_index + 34]
-        # speed_w = perception[start_index + 34]
-
-
-# def getLineCoordinate(vertex, id):
-#     l1 = (vertex[0], vertex[3])
-#     l2 = (vertex[1], vertex[2])
-#     l3 = (vertex[0], vertex[1])
-#     l4 = (vertex[3], vertex[2])
-#     l5 = (vertex[4], vertex[7])
-#     l6 = (vertex[5], vertex[6])
-#     l7 = (vertex[4], vertex[5])
-#     l8 = (vertex[7], vertex[6])
-#     l9 = (vertex[3], vertex[7])
-#     l10 = (vertex[2], vertex[6])
-#     l11 = (vertex[0], vertex[4])
-#     l12 = (vertex[1], vertex[5])
-#     return [l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,id]

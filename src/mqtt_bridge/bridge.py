@@ -75,6 +75,9 @@ class ArenaRosToMqttBridge(Bridge):
         for vehicle_id in range(0, num_vehicle):
             position = perception_util.get_position(perception_data, vehicle_id)
             
+            # refer to perception_util.py line 31 for arena_create_object()
+            # position field needs to be given for box and circle geometry
+            # path field needs to be given for thickline object
             payload = perception_util.arena_create_object(self._arena_object_type, self._arena_params, 
                                                             self._default_arena_msg, vehicle_id, position)
             # print(json.dumps(payload))
