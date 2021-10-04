@@ -74,7 +74,7 @@ class ArenaRosToMqttBridge(Bridge):
         perception_data = msg.perception
         for vehicle_id in range(0, num_vehicle):
             position = perception_util.get_position(perception_data, vehicle_id)
-            position = perception_util.tf(position, -90, 15, 0)
+            # position = perception_util.tf(position, -90, 15, 0)
             
             # refer to perception_util.py line 31 for arena_create_object()
             # position field needs to be given for box and circle geometry
