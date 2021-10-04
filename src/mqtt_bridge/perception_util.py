@@ -1,5 +1,6 @@
 from netdriving.msg import perception_msg
-
+import numpy as np
+import math as m
 
 MSG_LENGTH_PER_VEHICLE = 35
 
@@ -26,6 +27,41 @@ def create_arena_msg(arena_params):
     }
 
     return msg
+
+
+def tf(position, x_angle, y_angle, z_angle):
+    x = position['x']
+    y = position['y']
+    z = position['z']
+
+    x_rad = m.radians(x_angle)
+    y_rad = m.radians(y_angle)
+    z_rad = m.radians(z_angle)
+
+    xyz = np.matrix([[x], 
+                     [y], 
+                     [z]])
+    
+    Rx = np.matrix([[ 1,            0,            0],
+                    [ 0, m.cos(x_rad),-m.sin(x_rad)],
+                    [ 0, m.sin(x_rad), m.cos(x_rad)]])
+    
+    Ry = np.matrix([[ m.cos(y_rad), 0, m.sin(y_rad)],
+                    [            0, 1,            0],
+                    [-m.sin(y_rad), 0, m.cos(y_rad)]])
+    
+    Rz = np.matrix([[ m.cos(z_rad), -m.sin(z_rad), 0],
+                    [ m.sin(z_rad),  m.cos(z_rad), 0],
+                    [            0,             0, 1]])
+    
+    rot_m = np.dot(Rx, np.dot(Ry, Rz))
+    # rot_m = Rz * Ry * Rx
+
+    result = np.dot(rot_m, xyz)
+
+    return {'x': result.item(0,0),
+            'y': result.item(1,0),
+            'z': result.item(2,0)}
 
 
 def arena_create_object(object_type, arena_params, arena_msg, obj_id, position=None, path=None):
