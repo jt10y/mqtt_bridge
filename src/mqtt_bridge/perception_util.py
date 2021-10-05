@@ -11,6 +11,7 @@ def create_arena_msg(arena_params):
         "persist": arena_params["persist"],
         "type": arena_params["type"],
         "action": arena_params["action"],
+        "ttl": arena_params["ttl"],
         "data": {
             "rotation": {
                 "x": arena_params["rotation"][0],
